@@ -7,9 +7,10 @@ from config import Config
 from collections import OrderedDict
 
 
-class PanDataset(object):
+class DatasetLoader(object):
 
-    """Docstring for PanDataset. """
+    """ Pan DatasetLoader class.
+        may want to add IdentificationDataset later """
 
     def __init__(self, path):
         """ Initialize self
@@ -19,17 +20,15 @@ class PanDataset(object):
         :media: media to use
 
         """
-        # TODO
-        # don't forget rename 's/$/-twitter/' *  and other renames
         self.folder = path
 
 
-class ProfilingDataset(PanDataset):
+class ProfilingDataset(DatasetLoader):
 
     """Docstring for ProfilingDataset. """
 
     def __init__(self, path, label=Pan.TRAIN_LABEL, percent=100):
-        """TODO: to be defined1.
+        """ Load the profiling datset from this folder
 
         :path: path to the folder which contains the datafiles
         :label: label to add to data instances
@@ -39,12 +38,12 @@ class ProfilingDataset(PanDataset):
         """
         assert 0 <= percent <= 100
         assert label in [Pan.TRAIN_LABEL, Pan.TEST_LABEL]
-        PanDataset.__init__(self, path)
+        DatasetLoader.__init__(self, path)
         self.label = label
         self.percent = percent
         self.config = Config(self.lang)
         self.truth_mapping = self.config.truth_mapping
-        self.entries = self.read_entries()
+        self.entries = self._read_entries()
         self.preprocess()
         # TODO see where you are going to put this
         # self.discard_empty()
@@ -79,8 +78,8 @@ class ProfilingDataset(PanDataset):
 
     @property
     def lang(self):
-        """TODO: Docstring for lang.
-        :returns: lowercase language
+        """ language attribute - gets it from the header of one of the samples.
+        :returns: the language this dataset is about
 
         """
         # pick a sample to find language (don't pick the truth file)
@@ -94,8 +93,8 @@ class ProfilingDataset(PanDataset):
 
     @property
     def media(self):
-        """TODO: Docstring for media.
-        :returns: TODO
+        """ media attribute - gets the type of media this text is
+        :returns: media type of text
 
         """
         sample = [choose for choose in os.listdir(self.folder)
@@ -112,7 +111,7 @@ class ProfilingDataset(PanDataset):
                 media = 'twitter'
         return media
 
-    def read_entries(self):
+    def _read_entries(self):
         """ populate entries by reading the data
         :returns: nothing, it populates the entries list
 
@@ -143,29 +142,13 @@ class ProfilingDataset(PanDataset):
             # train counts from start, test from end <- if they sum to 100
             if self.label == Pan.TRAIN_LABEL:
                 if index <= (float(len(lines))/100) * self.percent:
-                    entries.append(self.new_instance(line, Pan.TRAIN_LABEL))
+                    entries.append(self._new_instance(line, Pan.TRAIN_LABEL))
             elif self.label == Pan.TEST_LABEL:
                 if index >= len(lines) - ((float(len(lines))/100) * self.percent):
                     entries.append(self.new_instance(line, Pan.TEST_LABEL))
         return entries
 
-    def __repr__(self):
-        """TODO: Docstring for __repr__.
-        :returns: TODO
-
-        """
-        return """
-                  lang : {} \n
-                  media : {} \n
-                  texts : \n {}"""\
-                      .format(
-                             self.lang,
-                             self.media,
-                             '\n'.join(each.__repr__()
-                                       for each in self.entries)
-                             )
-
-    def new_instance(self, line, label):
+    def _new_instance(self, line, label):
         """ read line, extract attributes and create and add the
             Author Profile instance
 
@@ -191,6 +174,22 @@ class ProfilingDataset(PanDataset):
             ap_attrs[Pan.TEXTS_LABEL] = docs
             return AuthorProfile(label=label, **ap_attrs)
 
+    def __repr__(self):
+        """ Ipython friendly output
+        :returns: str
+
+        """
+        return """
+                  lang : {} \n
+                  media : {} \n
+                  texts : \n {}"""\
+                      .format(
+                             self.lang,
+                             self.media,
+                             '\n'.join(each.__repr__()
+                                       for each in self.entries)
+                             )
+
     def write_data(self, folder):
         """ Write data to the xml file as expected in pan
 
@@ -205,7 +204,7 @@ class ProfilingDataset(PanDataset):
                 output.write(entry.to_xml())
 
     def discard_empty(self):
-        """Discard text item if empty
+        """ Discard text item if empty
         :returns: nothing
 
         """
@@ -214,7 +213,7 @@ class ProfilingDataset(PanDataset):
                 del self.entries[index]
 
     def discard_duplicates(self):
-        """Discard cleaned texts that contain quotations
+        """ Discard cleaned texts that contain quotations
         :returns: nothing
 
         """
@@ -353,8 +352,8 @@ class AuthorProfile(object):
         preprocess.clean_html(self.texts)
 
     def __repr__(self):
-        """TODO: Docstring for __repr__.
-        :returns: TODO
+        """ IPython friendly output
+        :returns: str
 
         """
         # automatically capture all non iterables
@@ -383,21 +382,6 @@ class AuthorProfile(object):
         body = body.replace('gender="F"', 'gender="female"')
         return header + body + footer
 
-    def preprocess(self, html=True):
-        """ Strip html
-
-        :html: TODO
-        :xml: TODO
-        :returns: TODO
-
-        """
-        for index, text in reversed(list(enumerate(self.texts))):
-            if html:
-                self.texts[index] = preprocess.strip_tags(text)
-            # remove if empty string
-            if not self.texts[index].strip():
-                del self.texts[index]
-
     def get_text(self, label='texts', separator=''):
         """ Get text with preprocess label
 
@@ -417,22 +401,6 @@ class AuthorProfile(object):
         """
         return getattr(self, feature)
 
-    def normalize(self):
-        """ remove characteristics which aren't author dependent like hashes and urls
-        :returns: TODO
-
-        """
-        normalized = []
-        for each in self.texts:
-            # remove urls from text
-            each = preprocess.urlregex.sub('', each)
-            # replace hashtags with the text of the tag
-            each = preprocess.hashregex.sub('\g<2>', each)
-            # replace @ tags
-            each = preprocess.replyregex.sub('', each)
-            normalized.append(each.strip())
-        return normalized
-
     def datafy(self, label='texts', feature='none'):
         """Return a tuple of data - training and label if feature is not none
 
@@ -445,18 +413,3 @@ class AuthorProfile(object):
         else:
             return (self.get_text(label, separator='\n'),
                     getattr(self, feature))
-
-    def clear_quotations(self):
-        """ Remove tweets that contain citations
-        :returns: TODO
-
-        """
-        found = 0
-        for index, text in reversed(list(enumerate(self.texts))):
-            for func in preprocess.quoteregexs:
-                matches = func(text)
-                if matches:
-                    found += 1
-                    del self.cleaned[index]
-                    break
-        return found

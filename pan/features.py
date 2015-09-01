@@ -62,26 +62,6 @@ def count_hash(data):
         return len(pat.findall(data))
 
 
-def count_quotations(data):
-    """Counts number of quotations in current text
-
-    :data: the list of texts or a single text to count from
-    :returns: the number of quotations
-
-    """
-
-    user_quotations = []
-    for text in reversed(data):
-        found = 0
-        for func in quoteregexs:
-            matches = func(text)
-            if matches:
-                found += 1
-                break
-        user_quotations.append(found)
-    return vstack(user_quotations)
-
-
 def count_reply(data):
     """Counts number of reply tag occurences
 
