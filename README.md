@@ -1,3 +1,4 @@
+[Configuration](#configuration)
 # NCSR Demokritos submission to Pan 2015.
 ##### Pangram, interestingly is actually a word, and means a sentence that contains all the letters of the alphabet.  However, it was chosen to be the name of this project as an anagram of ap-ngram (author profiling with ngrams)
 
@@ -6,7 +7,8 @@ Package consists of a python module and scripts for:
 - training
 - testing
 models on the pan 2015 dataset.
-It should also work for pan 2014 with slight modifications in the config files.
+It also works on the pan 2014 dataset with a slight modification in the config file. For more information
+check the (#configuration) section.
 
 ## Installation:
 
@@ -31,14 +33,13 @@ pip install --user .
 
 ## Example usage:
 
-> python train.py -i pan15-author-profiling-training-dataset-2015-04-23/pan15-author-profiling-training-dataset-english-2015-04-23/ -o models
+- python train.py -i pan15-author-profiling-training-dataset-2015-04-23/pan15-author-profiling-training-dataset-english-2015-04-23/ -o models
 
+- python test.py -i pan15-author-profiling-training-dataset-2015-04-23/pan15-author-profiling-training-dataset-english-2015-04-23/ -m models/en.bin -o results
 
-> python test.py -i pan15-author-profiling-training-dataset-2015-04-23/pan15-author-profiling-training-dataset-english-2015-04-23/ -m models/en.bin -o results
+- python cross.py -i ../Baseline/pan15-author-profiling-training-dataset-2015-04-23/pan15-author-profiling-training-dataset-english-2015-04-23/
 
-> python cross.py -i ../Baseline/pan15-author-profiling-training-dataset-2015-04-23/pan15-author-profiling-training-dataset-english-2015-04-23/
-
-### Output:
+#### Output example:
 
 > Loading dataset...
 > Creating preprocess group: texts
@@ -78,9 +79,67 @@ pip install --user .
 > instances : 38 - features : 19999
 > Training stylometry , using :
 > - tfidf ngrams
-> instances : 114 - features : 20775
-> Testing stylometry , using :
->  -tfidf ngrams
-> instances : 38 - features : 20775
+> (more info until results)
+
+> Results for en - gender with classifier SVC
+> Accuracy mean : 0.796052631579
+> Confusion matrix:
+>  [[62 14]
+>  [17 59]]
+> 
+> 
+> Results for en - age with classifier LinearSVC
+> Accuracy mean : 0.736842105263
+> Confusion matrix:
+>  [[55  3  0  0]
+>  [ 7 53  0  0]
+>  [ 1 20  1  0]
+>  [ 2  7  0  3]]
+> 
+> 
+> Results for en - extroverted with classifier Ridge
+> root mean squared error : 0.16351090744
+> 
+> Results for en - concientious with classifier Ridge
+> root mean squared error : 0.161314013176
+> 
+> Results for en - stable with classifier Ridge
+> root mean squared error : 0.224479962212
+> 
+> Results for en - agreeable with classifier Ridge
+> root mean squared error : 0.163949582583
+> 
+> Results for en - open with classifier Ridge
+> root mean squared error : 0.145654367069
 
 ## Configuration:
+In the config folder is a toy setup of the configuration for pangram. It is based on the
+[YAML](http://yaml.org) format.
+
+Settings currently configurable are:
+- Pan dataset settings for each language
+- Feature groupings, preprocessing for each feature group, and classifier settings
+
+In config/languages there is a file for each language which specifies where each attribute
+to be predicted is in the truth file that contains the label for the training set. For each
+of these attributes, you can set a file that contains the feature grouping and preprocessing
+settings. In the example provided the mapping is the same for each language, but this need
+not be the case.
+
+In config/features the settings for each feature group can be found. The format is in the form
+label of:
+> label of feature group
+>  - feature extractor 1
+>  - feature extractor 2
+>  - ..
+>  preprocessing :
+>    label: label this so that it doesn't get computed twice if it has been defined elsewhere
+>    pipe: 
+>        - method 1
+>        - method 2
+>        - ...
+The above methods are expected to be defined in preprocess.py and process a mutable iterable
+in place. (in our case a list of texts)
+
+#### Pan 2014 configuration
+##### If you want to try pangram on PAN 2014 you only need to comment out the lines corresponding to the psychometric attributes in config/languages/mylang.yml. Namely, comment out below the age settings - since the other labels didn't exist in Pan 2014.
