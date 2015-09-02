@@ -36,14 +36,6 @@ stylometry:
 #         function: count_punct
 #     bag_of_punct:
 #         function: bag_of_punct
-     tfidf of related words:
-         function: tfidf_related_words
-         preprocess: &basic
-              label: basic
-              pipeline:
-                - clean_html
-                - detwittify
-                - remove_duplicates
      # tfidf ngrams:
      #     function: tfidf_ngrams
      #     preprocess: &basic
@@ -60,7 +52,12 @@ stylometry:
      #     preprocess: *basic
      count_word_length:
          function: count_word_length
-         preprocess: *basic
+         preprocess: &basic
+              label: basic
+              pipeline:
+                - clean_html
+                - detwittify
+                - remove_duplicates
      # bag_of_smileys:
      #     function: bag_of_smileys
      #     preprocess: *basic

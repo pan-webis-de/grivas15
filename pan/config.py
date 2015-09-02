@@ -70,10 +70,9 @@ class Config(object):
 
     @property
     def regression_list(self):
-        """TODO: Docstring for regression_list.
+        """ list of regression models
 
-        :arg1: TODO
-        :returns: TODO
+        :returns: list - regression models
 
         """
         return [pred for pred in self.predictors.keys()
@@ -130,9 +129,7 @@ class Config(object):
 
     @property
     def labels(self):
-        """ Get a dictionary to easily grab the labels
-        :returns: TODO
-        """
+        """ Get a dictionary to easily grab the labels """
         return OrderedDict([each[:2] for each in
                            sorted([(pred, self._settings[pred]['result_label'],
                                   self._settings[pred]['result_column'])

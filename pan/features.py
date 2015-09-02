@@ -21,7 +21,6 @@ from textblob import TextBlob
 from textblob.tokenizers import WordTokenizer
 from scipy.sparse import vstack, hstack
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from gensim.models.word2vec import Word2Vec
 
 # ------------------------ feature generators --------------------------------#
 # ------------------ for heavy weaponry see bottom ---------------------------#
@@ -305,45 +304,6 @@ def bag_of_words(train=None, test=None, model=None):
     if test is None:
         if hasattr(train, '__len__'):
             vec = CountVectorizer(dtype=float, analyzer='word')
-            train_feat = vec.fit_transform(train)
-            return {'train': train_feat, 'model': vec}
-        else:
-            raise TypeError('data must be a list of texts')
-    # case only test
-    elif train is None:
-        if hasattr(test, '__len__'):
-            test_feat = model.transform(test)
-            return {'test': test_feat}
-        else:
-            raise TypeError('data must be a list of texts')
-    else:
-        raise AttributeError('No specified model or train or test set')
-
-
-@training_independent
-def tfidf_related_words(train=None, test=None, model=None):
-    """ Creates a set of words found in your texts and stores counts
-        of each and every one of them
-
-    :train: A list of training texts
-    :test: A list of test texts
-    :returns: An array of counts of the words in the set for each text
-
-    """
-    # case only train
-    if test is None:
-        if hasattr(train, '__len__'):
-            similar = ['love', 'bye', 'not', 'yes', 'no', 'thank', 'you',
-                       'fuck', 'hate', 'it', 'if', 'we', 'brother',
-                       'friend', 'yeah', 'tomorrow', 'bitch', 'dad',
-                       'really', 'every', 'crap', 'morning',
-                       'never', 'cunt', 'noob', 'listen', 'bored']
-            modelpath = os.path.abspath('resources/word2vec/vectors.bin')
-            w2v = Word2Vec.load_word2vec_format(modelpath, binary=True)
-            vocab = {related for word in similar
-                     for related, sim in
-                     w2v.most_similar(positive=[word], topn=30)}
-            vec = TfidfVectorizer(dtype=float, analyzer='word', vocabulary=vocab)
             train_feat = vec.fit_transform(train)
             return {'train': train_feat, 'model': vec}
         else:
