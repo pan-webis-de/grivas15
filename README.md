@@ -1,6 +1,5 @@
 # NCSR Demokritos submission to Pan 2015.
-## Pangram, interestingly is actually a word, and means a sentence that contains all the letters of the alphabet.
-## However, it was chosen to be the name of this project as an anagram of ap-ngram (author profiling with ngrams)
+##### Pangram, interestingly is actually a word, and means a sentence that contains all the letters of the alphabet.  However, it was chosen to be the name of this project as an anagram of ap-ngram (author profiling with ngrams)
 
 Package consists of a python module and scripts for:
 - crossvalidating
