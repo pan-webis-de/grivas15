@@ -52,11 +52,10 @@ if not modelfile:
 
 
 def test_data(dataset, model):
-    """TODO: Docstring for test_data.
+    """ evaluate model on test data
 
-    :lang: TODO
-    :feature: TODO
-    :returns: TODO
+    :dataset: The dataset to evaluate model on
+    :model: The trained model to use for prediction
 
     """
 

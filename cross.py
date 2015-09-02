@@ -45,7 +45,6 @@ def cross_validate(dataset, feature, clf):
 
     :lang: the language
     :feature: the feature we want to classify for , ex: age
-    :returns: nothing - prints results
 
     """
 
