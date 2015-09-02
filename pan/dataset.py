@@ -145,7 +145,7 @@ class ProfilingDataset(DatasetLoader):
                     entries.append(self._new_instance(line, Pan.TRAIN_LABEL))
             elif self.label == Pan.TEST_LABEL:
                 if index >= len(lines) - ((float(len(lines))/100) * self.percent):
-                    entries.append(self.new_instance(line, Pan.TEST_LABEL))
+                    entries.append(self._new_instance(line, Pan.TEST_LABEL))
         return entries
 
     def _new_instance(self, line, label):

@@ -36,7 +36,7 @@ def get_docs(xml):
     """
     bs = BeautifulSoup(xml)
     # remove right tabs - why do you add tabs in CDATA?
-    docs = [doc.xml.rstrip('\t') for doc in bs.findAll('document')]
+    docs = [doc.text.rstrip('\t') for doc in bs.findAll('document')]
     return docs
 
 
