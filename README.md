@@ -7,7 +7,7 @@ Package consists of a python module and scripts for:
 - testing
 models on the pan 2015 dataset.
 It also works on the pan 2014 dataset with a slight modification in the config file. For more information
-check the [Pan 2014 configuration](#Pan-2014-configuration) section.
+check the [Pan 2014 configuration](#pan-2014-configuration) section.
 
 ## Installation:
 
@@ -140,5 +140,5 @@ label of:
 In the above snippet, feature extractor names are expected to be defined in pan/features.py.
 Similarly, the above methods are expected to be defined in pan/preprocess.py and process a mutable iterable in place. (in our case a list of texts)
 
-#### Pan-2014-configuration
+#### Pan 2014 configuration
 If you want to try pangram on PAN 2014 you only need to comment out the lines corresponding to the psychometric attributes in config/languages/mylang.yml. Namely, comment out below the age settings - since the other labels didn't exist in Pan 2014.
