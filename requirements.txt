@@ -1,0 +1,11 @@
+gensim == 0.11.1_1.egg
+nltk == 3.0.2.egg
+numpy == 1.9.2.egg
+pandas == 0.16.0.egg
+regex == 2015.05.07.egg
+scipy == 0.16.0
+setuptools == 5.5.1.egg
+textblob == 0.9.0
+BeautifulSoup == 3.2.1
+scikit_learn == 0.16.1
+PyYAML == 3.11

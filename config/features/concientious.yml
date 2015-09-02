@@ -1,0 +1,77 @@
+structural: 
+     hash:
+         function: count_hash
+     replies:
+         function: count_reply
+     links:
+         function: count_url_links
+     # bag_of_hash:
+     #     function: bag_of_hash
+     # count quotations:
+     #     function: count_quotations
+stylometry:
+#     money:
+#         function: count_money
+#     tf_idf_punct:
+#         function: tf_idf_punct
+#     tf_idf_smileys:
+#         function: tf_idf_smileys
+#     tf_idf_hash:
+#         function: tf_idf_hash
+#     tf_idf:
+#         function: tf_idf
+#     tf_idf_punct:
+#         function: tf_idf_punct
+#     tf_idf_smileys:
+#         function: tf_idf_smileys
+#     tf_idf_hash:
+#         function: tf_idf_hash
+#     caps:
+#         function: count_caps
+#     word_lower:
+#         function: count_word_lower
+#     word_title:
+#         function: count_word_title
+#     punct:
+#         function: count_punct
+#     bag_of_punct:
+#         function: bag_of_punct
+     bag_of_words:
+         function: bag_of_words
+         preprocess: &basic
+              label: basic
+              pipeline:
+                - clean_html
+                - detwittify
+                - remove_duplicates
+     # tfidf ngrams:
+     #     function: tfidf_ngrams
+     #     preprocess: &basic
+     #          label: basic
+     #          pipeline:
+     #            - clean_html
+     #            - detwittify
+     #            - remove_duplicates
+     #            # - silhouette
+     #            # - filter_lang
+     #            # - collapse_entities
+     # word_caps:
+     #     function: count_word_caps
+     #     preprocess: *basic
+     # count_word_length:
+     #     function: count_word_length
+     #     preprocess: *basic
+     # bag_of_smileys:
+     #     function: bag_of_smileys
+     #     preprocess: *basic
+     # ngram graphs:
+     #     function: ngram_graphs
+     #     preprocess: *basic
+extracted:
+#     valid_words:
+#         function: count_valid_words
+#     ner:
+#         function: count_named_entities
+     # get_polarity:
+     #      function: get_polarity
+     #      preprocess: *basic

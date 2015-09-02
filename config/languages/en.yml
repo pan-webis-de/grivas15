@@ -1,0 +1,88 @@
+# expose classes to predict for this language
+# for each class expose the column in the truth.txt file
+# and whether it is a classification or regression problem
+
+userid:
+    column: 0
+    data_only: True
+    result_column: 0
+    result_label: id
+media:
+    data_only: True
+    result_column: 1
+    result_label: type
+lang:
+    data_only: True
+    result_column: 2
+    result_label: lang
+gender:
+    column: 1
+    type: classification
+    estimator: SVC
+    estimator_pkg: sklearn.svm
+    estimator_params:
+        kernel: rbf
+        gamma: 100
+        C: 100
+    feature_file: gender.yml
+    result_column: 4
+    result_label: gender
+age:
+    column: 2
+    type: classification
+    estimator: LinearSVC
+    estimator_pkg: sklearn.svm
+    estimator_params:
+        class_weight: auto
+    feature_file: age.yml
+    result_column: 3
+    result_label: age_group
+extroverted:
+    column: 3
+    type: regression
+    estimator: Ridge
+    estimator_pkg: sklearn.linear_model
+    estimator_params:
+    feature_file: extroverted.yml
+    result_column: 5
+    result_label: extroverted
+stable:
+    column: 4
+    type: regression
+    estimator: Ridge
+    estimator_pkg: sklearn.linear_model
+    estimator_params:
+    # feature_file: stable.yml
+    feature_file: extroverted.yml
+    result_column: 6
+    result_label: stable
+agreeable:
+    column: 5
+    type: regression
+    estimator: Ridge
+    estimator_pkg: sklearn.linear_model
+    estimator_params:
+    # feature_file: agreeable.yml
+    feature_file: extroverted.yml
+    result_column: 7
+    result_label: agreeable
+concientious:
+    column: 6
+    type: regression
+    estimator: Ridge
+    estimator_pkg: sklearn.linear_model
+    estimator_params:
+    # feature_file: concientious.yml
+    feature_file: extroverted.yml
+    result_column: 8
+    result_label: concientious
+open:
+    column: 7
+    type: regression
+    estimator: Ridge
+    estimator_pkg: sklearn.linear_model
+    estimator_params:
+    # feature_file: open.yml
+    feature_file: extroverted.yml
+    result_column: 9
+    result_label: open

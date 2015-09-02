@@ -21,9 +21,9 @@ class Config(object):
     """Docstring for Config. """
 
     def __init__(self, lang):
-        """TODO: to be defined1.
+        """ Configuration representation - read from files
 
-        :lang: TODO
+        :lang: The language this configuration is for
 
         """
         self.lang = lang
@@ -81,10 +81,9 @@ class Config(object):
 
     @property
     def classifier_list(self):
-        """TODO: Docstring for regression_list.
+        """ Get list of classifiers
 
-        :arg1: TODO
-        :returns: TODO
+        :returns: list - classifier models
 
         """
         return [pred for pred in self.predictors.keys()
@@ -92,10 +91,9 @@ class Config(object):
 
     @property
     def preprocess_map(self):
-        """TODO: Docstring for regression_list.
+        """ The preprocessing mapping for each feature group
 
-        :arg1: TODO
-        :returns: TODO
+        :returns: dict - the mapping
 
         """
         preprocess = {}
@@ -136,19 +134,18 @@ class Config(object):
         :returns: TODO
         """
         return OrderedDict([each[:2] for each in
-                     sorted([(pred, self._settings[pred]['result_label'],
-                              self._settings[pred]['result_column'])
-                             for pred in self._settings.keys()],
+                           sorted([(pred, self._settings[pred]['result_label'],
+                                  self._settings[pred]['result_column'])
+                                  for pred in self._settings.keys()],
                             key=lambda x: x[2])])
         pass
 
 
 class GroupConfig(object):
 
-    """Docstring for Class. """
+    """ Configuration representation for each feature group """
 
     def __init__(self, label, **kwargs):
-        """TODO: to be defined1. """
         self.label = label
         for name, value in kwargs.items():
             if name == FEATURE_FILE_ATTR:
@@ -182,8 +179,9 @@ class GroupConfig(object):
 
     @property
     def group_generators(self):
-        """TODO: Docstring for feature_generators.
-        :returns: TODO
+        """ Create GroupGenerator objects for feature groups - reinventing
+            sklearn FeatureUnion.. !
+        :returns: list of GroupGenerator
 
         """
         # get a dictionary of GroupGenerators for each style
@@ -205,8 +203,8 @@ class GroupConfig(object):
 
     @property
     def preprocess_map(self):
-        """TODO: Docstring for feature_generators.
-        :returns: TODO
+        """ Set list of functions to run preprocessing for this feature group
+        :returns: mapping of preprocess_labels to list of functions
 
         """
         return {feat.preprocess_label: feat.preprocess_funcs
@@ -227,10 +225,9 @@ class GroupConfig(object):
 
 class GeneratorConfig(object):
 
-    """Docstring for GeneratorConfig. """
+    """ Config for each feature generator """
 
     def __init__(self, label, **kwargs):
-        """ initialize """
         self.label = label
         for name, value in kwargs.items():
             # deal with preprocess later

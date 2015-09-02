@@ -8,25 +8,38 @@
     This is supposed to be extensible as you can add or remove
     any functions you like from the dictionary
 """
+# I actually did reinvent sklearn FeatureUnion + sklearn Pipeline
+# TODO: revert to sklearn equivalents to make code much simpler
 import os
 import regex as re
 import numpy as np
 import string
 import nltk
 import inspect
-import enchant
-from pyinsect import CentroidModel
+# from pyinsect import CentroidModel
 from textblob import TextBlob
 from textblob.tokenizers import WordTokenizer
 from scipy.sparse import vstack, hstack
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from preprocess import quoteregexs
 from gensim.models.word2vec import Word2Vec
 
 # ------------------------ feature generators --------------------------------#
 # ------------------ for heavy weaponry see bottom ---------------------------#
 
 
+# basically we have 3 types of feature generator functions.
+# 1. A function that depends only on the X input when extracting features for
+#    either train or test
+# 2. A function that depends only on the X input - but needs the fit of the
+#    training data in order to fit to test data - for example the vocabulary
+#    of tfidf is needed to fit the test data.
+#    Therefore in this case we also need the model built on the train data
+#    when fitting the test data
+# 3. A function that depends on X and also needs the labels in order to create
+#    the model. Therefore in this case we need 2 inputs for the train case
+#    and 3 inputs for the test case.
+
+# functions with this annotation correspond to group 2
 def training_dependent(func):
     """ training dependent - pass X, Y (need Y) """
     def wrapper(train, test, model):
@@ -37,6 +50,7 @@ def training_dependent(func):
     return wrapper
 
 
+# functions with this annotation correspond to group 3
 def training_independent(func):
     """ training independent - pass X only """
     def wrapper(train, test, model):
@@ -47,6 +61,7 @@ def training_independent(func):
     return wrapper
 
 
+# all below with one argument correspond to aforementioned group 1
 def count_hash(data):
     """Counts number of hash occurences
 
@@ -217,69 +232,33 @@ def get_polarity(data):
         return TextBlob(data).sentiment.polarity
 
 
-def count_valid_words(data):
-    """ Returns a count of words found when looked up in a dictionary
+# @training_dependent
+# def ngram_graphs(train=None, test=None, model=None):
+#     """ Creates centroid graphs for every class
+#         using percentage of training.
 
-    :data: the list of texts or a single text to count from
-    :returns: how many valid words where found
-    :         If called with a list, expect a list
+#     :train: A list of training texts
+#     :test: A list of test texts
+#     :model: The model learned if called for test data
+#     :returns: Distance of each instance from centroids
 
-    """
-    dic = enchant.Dict('en_US')
-    if hasattr(data, '__len__'):
-        return vstack([sum(dic.check(word.lower())
-                           for word in nltk.word_tokenize(each))
-                       for each in data])
-    else:
-        return sum(dic.check(word.lower()) for word in nltk.word_tokenize(each))
-
-
-def count_named_entities(data):
-    """ Counts named entities present in text
-
-    :data: the list of texts or a single text to count from
-    :returns: number of named entities
-
-    """
-    if hasattr(data, '__len__'):
-        return vstack([sum(node.label() == 'NE'
-            for sent in nltk.sent_tokenize(each)
-            for node in nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(sent)),
-                binary=True).subtrees()) for each in data])
-    else:
-        # this is ugly due to the tree structure - it just counts noun entities
-        return sum(node.label() == 'NE' for sent in nltk.sent_tokenize(data)
-            for node in nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(sent)),
-                binary=True).subtrees())
-
-
-@training_dependent
-def ngram_graphs(train=None, test=None, model=None):
-    """ Creates centroid graphs for every class 
-        using percentage of training.
-
-    :train: TODO
-    :test: TODO
-    :model: TODO
-    :returns: Distance of each instance from centroids
-
-    """
-    if test is None:
-        if hasattr(train, '__len__'):
-            model = CentroidModel(percentage=0.8)
-            train_feat = model.fit(train[0], train[1])
-            return {'train': train_feat, 'model': model}
-        else:
-            raise TypeError('data must be a list of texts')
-    # case only test
-    elif train is None:
-        if hasattr(test, '__len__'):
-            test_feat = model.transform(test)
-            return {'test': test_feat}
-        else:
-            raise TypeError('data must be a list of texts')
-    else:
-        raise AttributeError('No specified model or train or test set')
+#     """
+#     if test is None:
+#         if hasattr(train, '__len__'):
+#             model = CentroidModel(percentage=0.8)
+#             train_feat = model.fit(train[0], train[1])
+#             return {'train': train_feat, 'model': model}
+#         else:
+#             raise TypeError('data must be a list of texts')
+#     # case only test
+#     elif train is None:
+#         if hasattr(test, '__len__'):
+#             test_feat = model.transform(test)
+#             return {'test': test_feat}
+#         else:
+#             raise TypeError('data must be a list of texts')
+#     else:
+#         raise AttributeError('No specified model or train or test set')
 
 
 @training_independent
@@ -289,6 +268,7 @@ def bag_of_ngrams(train=None, test=None, model=None):
 
     :train: A list of training texts
     :test: A list of test texts
+    :model: The model learned if called for test data
     :returns: An array of counts of the words in the set for each text
 
     """
@@ -551,15 +531,16 @@ def featurize(train, test, featuremap, model='None'):
 
 class GroupGenerator(object):
 
-    """Docstring for Features. """
+    """Models a machine learning feature grouping generator"""
 
     def __init__(self, classification_task, group, generators=None):
-        """TODO: to be defined1.
+        """ Initialize a GroupGenerator
 
         :lang: The language the feature generator is for
-        :classification_task: The types of features we have - groups of features
+        :classification_task: The types of features we have -
+                              groups of features
         :group: The group of features this belongs to
-        :groupmap: The mapping of this group to features - FeatureGenerator
+        :generators: The mapping of this group to features - FeatureGenerator
 
         """
         self.group = group
@@ -567,23 +548,26 @@ class GroupGenerator(object):
         self.generators = generators
 
     def train(self, X, y):
-        """TODO: Docstring for train.
+        """ Fit data - equivalent to sklearn fit
 
-        :dataset: TODO
-        :returns: TODO
+        :X: train data
+        :y: labels if they exist
+        :returns: The result of fitting the data
 
         """
         outdata = []
         print 'Training {} , using :'.format(self.group)
+        # horizontally stack results from each feature group
+        # reinventing sklearn feature union.
         for data, generator in zip(X, self.generators):
             outdata.append(generator.train(data, y))
         return hstack(outdata)
 
     def test(self, X):
-        """TODO: Docstring for train.
+        """ Fit test data - equivalent to sklearn transform
 
-        :dataset: TODO
-        :returns: TODO
+        :X: test data to fit
+        :returns: The results of fitting the data
 
         """
         outdata = []
@@ -602,13 +586,16 @@ class GroupGenerator(object):
             representation += '{}: {}\n'.format(key, value)
         return representation
 
+
 class FeatureGenerator(object):
 
     def __init__(self, name, function, preprocess_label, preprocess_funcs):
-        """TODO: Docstring for __init__.
-        :returns: TODO
+        """ Initialize a FeatureGenerator for a feature
 
+        :name: Name of feature generator
+        :function: The function that generates this feature
         """
+
         self.name = name
         self.function = function
         self.preprocess_label = preprocess_label
@@ -616,10 +603,11 @@ class FeatureGenerator(object):
         self.model = None
 
     def train(self, X, y):
-        """TODO: Docstring for train.
+        """ Trains this model.
 
-        :dataset: TODO
-        :returns: TODO
+        :X: The training set
+        :y: The labels
+        :returns: Trained model (this is actually equivalent to sklearn fit)
 
         """
         print '- %s' % self.name
@@ -627,6 +615,10 @@ class FeatureGenerator(object):
         # collapse it if it is
         X = np.reshape(X, (len(X),))
         func = globals()[self.function]
+        # Some feature generators don't need labels
+        # in order to generate features - for example counts of words
+        # so if the function only accepts one argument, just pass X
+        # this is ugly - but i'm not going to change all the functions now
         if num_args(func) == 1:
             return func(X)
         else:
@@ -635,10 +627,11 @@ class FeatureGenerator(object):
         return results['train']
 
     def test(self, X):
-        """TODO: Docstring for train.
+        """ Evaluate on model
 
-        :dataset: TODO
-        :returns: TODO
+        :X: Input dataset - list of instances
+        :returns: The results of evaluating the model -
+                  equivalent to sklearn transform.
 
         """
         print ' -%s' % self.name

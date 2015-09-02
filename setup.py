@@ -10,13 +10,10 @@ setup(
             'regex',
             'beautifulsoup',
             'nltk',
-            'pyenchant',
-            'pyinsect',
             'numpy',
             'scipy',
             'scikit-learn',
             'pandas',
             'pyyaml',
-            'cython'
             ]
         )
