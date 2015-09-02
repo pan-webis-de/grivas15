@@ -1,4 +1,3 @@
-[Configuration](#configuration)
 # NCSR Demokritos submission to Pan 2015.
 ##### Pangram, interestingly is actually a word, and means a sentence that contains all the letters of the alphabet.  However, it was chosen to be the name of this project as an anagram of ap-ngram (author profiling with ngrams)
 
@@ -8,7 +7,7 @@ Package consists of a python module and scripts for:
 - testing
 models on the pan 2015 dataset.
 It also works on the pan 2014 dataset with a slight modification in the config file. For more information
-check the (#configuration) section.
+check the [Pan 2014 configuration](#configuration) section.
 
 ## Installation:
 
