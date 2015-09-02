@@ -5,15 +5,15 @@ Package consists of a python module and scripts for:
 - crossvalidating
 - training
 - testing
-models on the pan 2015 dataset.
-It also works on the pan 2014 dataset with a slight modification in the config file. For more information
+models on the PAN 2015 dataset.
+It also works on the PAN 2014 dataset with a slight modification in the config file. For more information
 check the [Pan 2014 configuration](#pan-2014-configuration) section.
 
 ## Installation:
 
 ### Dataset:
 In order to run the examples you will need to download the corpus for the author profiling task
-from the pan website:
+from the PAN website:
 
 http://www.uni-weimar.de/medien/webis/events/pan-15/pan15-web/author-profiling.html
 
