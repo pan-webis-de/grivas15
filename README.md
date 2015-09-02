@@ -1,4 +1,6 @@
 # NCSR Demokritos submission to Pan 2015.
+## Pangram, interestingly is actually a word, and means a sentence that contains all the letters of the alphabet.
+## However, it was chosen to be the name of this project as an anagram of ap-ngram (author profiling with ngrams)
 
 Package consists of a python module and scripts for:
 - crossvalidating
@@ -51,35 +53,35 @@ pip install --user .
 > Loaded 152 users...
 
 
---------------- Thy time of Running ---------------
-
-Creating model for en - gender
-Using 4 fold validation
-Using classifier SVC
-beginning cross validation...
-Training stylometry , using :
-- tfidf ngrams
-instances : 114 - features : 20662
-Testing stylometry , using :
- -tfidf ngrams
-instances : 38 - features : 20662
-Training stylometry , using :
-- tfidf ngrams
-instances : 114 - features : 21043
-Testing stylometry , using :
- -tfidf ngrams
-instances : 38 - features : 21043
-Training stylometry , using :
-- tfidf ngrams
-instances : 114 - features : 19999
-Testing stylometry , using :
- -tfidf ngrams
-instances : 38 - features : 19999
-Training stylometry , using :
-- tfidf ngrams
-instances : 114 - features : 20775
-Testing stylometry , using :
- -tfidf ngrams
-instances : 38 - features : 20775
+> --------------- Thy time of Running ---------------
+> 
+> Creating model for en - gender
+> Using 4 fold validation
+> Using classifier SVC
+> beginning cross validation...
+> Training stylometry , using :
+> - tfidf ngrams
+> instances : 114 - features : 20662
+> Testing stylometry , using :
+>  -tfidf ngrams
+> instances : 38 - features : 20662
+> Training stylometry , using :
+> - tfidf ngrams
+> instances : 114 - features : 21043
+> Testing stylometry , using :
+>  -tfidf ngrams
+> instances : 38 - features : 21043
+> Training stylometry , using :
+> - tfidf ngrams
+> instances : 114 - features : 19999
+> Testing stylometry , using :
+>  -tfidf ngrams
+> instances : 38 - features : 19999
+> Training stylometry , using :
+> - tfidf ngrams
+> instances : 114 - features : 20775
+> Testing stylometry , using :
+>  -tfidf ngrams
+> instances : 38 - features : 20775
 
 ## Configuration:
