@@ -1,46 +1,15 @@
 #!/usr/bin/python
 
-import sys
-import getopt
 import math
+from argparse import ArgumentParser
 from pan import ProfilingDataset, AuthorProfilingModel
 # from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score, recall_score, accuracy_score, \
                             f1_score, confusion_matrix, mean_squared_error
 
-infolder = ''
-
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "hi:o:",
-                               ["help", "input=", "output="])
-except getopt.GetoptError:
-    print 'invalid flag or missing option after it, try -h or --help for help'
-    sys.exit()
-
-for opt, arg in opts:
-    if opt in ('-h', '--help'):
-        print '                                                     '
-        print '                                                     '
-        print ' Hello from the training script. He are some options.'
-        print '                                                     '
-        print '-------------------- List of options -------------------------'
-        print '                                                              '
-        print '     -h  or --help     < get some help >'
-        print '     -i  or --input    < specify path to training folder >'
-        print '                                                              '
-        print '                                                              '
-        sys.exit()
-    elif opt in ('-i', '--input'):
-        infolder = arg.rstrip('/')
-
-if not infolder:
-    print('infile not specified, please pass -i or --infile argument')
-    sys.exit()
-
 log = []
 
-
-def cross_validate(dataset, feature, clf):
+def cross_validate(dataset, feature, clf, num_folds=4):
     """ train and cross validate a model
 
     :lang: the language
@@ -48,7 +17,6 @@ def cross_validate(dataset, feature, clf):
 
     """
 
-    num_folds = 4
     print '\nCreating model for {} - {}'.format(dataset.lang, feature)
     print 'Using {} fold validation'.format(num_folds)
     print 'Using classifier {}'.format(clf.__class__.__name__)
@@ -91,17 +59,30 @@ def cross_validate(dataset, feature, clf):
         sqe = mean_squared_error(Y, predict)
         log.append('root mean squared error : {}'.format(math.sqrt(sqe)))
 
+if __name__ == '__main__':
+    parser = ArgumentParser(description='Train a model with crossvalidation'
+                            ' on pan dataset - used for testing purposes ')
+    parser.add_argument('-i', '--input', type=str,
+                        required=True, dest='infolder',
+                        help='path to folder with pan dataset for a language')
+    parser.add_argument('-n', '--numfolds', type=int,
+                        dest='num_folds', default=4,
+                        help='Number of folds to use in cross validation')
 
-print 'Loading dataset...'
-data = ProfilingDataset(infolder, label='train')
-print 'Loaded {} users...\n'.format(len(data.entries))
-config = data.config
-features = config.classifier_list + config.regression_list
-print '\n--------------- Thy time of Running ---------------'
-for feature in features:
-    cross_validate(data, feature, clf=config[feature].estimator_model)
-# print results at end
-print '\n--------------- Thy time of Judgement ---------------'
-for message in log:
-    print message
-print
+    args = parser.parse_args()
+    infolder = args.infolder
+    num_folds = args.num_folds
+
+    print 'Loading dataset...'
+    data = ProfilingDataset(infolder, label='train')
+    print 'Loaded {} users...\n'.format(len(data.entries))
+    config = data.config
+    features = config.classifier_list + config.regression_list
+    print '\n--------------- Thy time of Running ---------------'
+    for feature in features:
+        cross_validate(data, feature,
+                       config[feature].estimator_model, num_folds)
+    # print results at end
+    print '\n--------------- Thy time of Judgement ---------------'
+    for message in log:
+        print message
