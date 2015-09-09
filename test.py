@@ -7,31 +7,29 @@ from pan import ProfilingDataset
 from sklearn.externals import joblib
 
 
-def test_data(dataset, model):
+def test_data(dataset, model, task):
     """ evaluate model on test data
 
     :dataset: The dataset to evaluate model on
     :model: The trained model to use for prediction
+    :task: The task this is for
 
     """
 
-    # TODO find a better way to solve this
-    model.train(model.model)
-    # need to retrain - it doesn't keep it's state
-    predict = model.test(dataset)
+    X, y = dataset.get_data(feature=task)
+    predict = model.predict(X)
     print('predict size is %s' % len(predict))
-    Y = dataset.get_labels(model.feature)
     try:
         # if it's classification we measure micro and macro scores
-        acc = accuracy_score(Y, predict)
-        conf = confusion_matrix(Y, predict, labels=list(set(Y)))
+        acc = accuracy_score(y, predict)
+        conf = confusion_matrix(y, predict, labels=list(set(y)))
         print 'Accuracy : {}'.format(acc)
         print 'Confusion matrix :\n {}'.format(conf)
     except ValueError:
         # if it's not, we measure mean square root error (regression)
-        sqe = mean_squared_error(Y, predict)
+        sqe = mean_squared_error(y, predict)
         print 'mean squared error : {}'.format(math.sqrt(sqe))
-    dataset.set_labels(model.feature, predict)
+    dataset.set_labels(task, predict)
 
 
 if __name__ == '__main__':
@@ -51,20 +49,18 @@ if __name__ == '__main__':
     infolder = args.infolder
     outfolder = args.outfolder
 
-    data = ProfilingDataset(infolder, label='test')
-    print 'Loaded {} users...\n'.format(len(data.entries))
-    config = data.config
-    features = config.classifier_list + config.regression_list
-    # load all models for features
+    dataset = ProfilingDataset(infolder)
+    print 'Loaded {} users...\n'.format(len(dataset.entries))
+    config = dataset.config
+    tasks = config.tasks
     all_models = joblib.load(model)
-    # TODO need to make sure different preprocessing isn't being done
-    if not all(feature in features for feature in all_models.keys()):
+    if not all(task in tasks for task in all_models.keys()):
         print("The models you are using aren't all specified in config file")
         print('Did you change the config file after training???!')
         print('Exiting.. try training again.')
         exit(1)
     print '\n--------------- Thy time of Judgement ---------------'
-    for feature in features:
-        test_data(data, all_models[feature])
+    for task in tasks:
+        test_data(dataset, all_models[task], task)
     # write output to file
-    data.write_data(outfolder)
+    dataset.write_data(outfolder)

@@ -1,0 +1,23 @@
+pipeline:
+  label: english
+  estimator: Pipeline
+  estimator_pkg: sklearn.pipeline
+  estimator_params:
+    steps:
+      - label: count 3grams tfidf
+        estimator: TfidfVectorizer
+        estimator_pkg: sklearn.feature_extraction.text
+        estimator_params:
+          analyzer: char
+          ngram_range: [3, 3]
+      - label: svm
+        estimator: LinearSVC
+        estimator_pkg: sklearn.svm
+     # tfidf ngrams: 
+     #     function: tfidf_ngrams
+     #     preprocess: &basic
+     #          label: basic
+     #          pipeline:
+     #            - clean_html
+     #            - detwittify
+     #            - remove_duplicates

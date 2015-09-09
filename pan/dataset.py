@@ -27,24 +27,16 @@ class ProfilingDataset(DatasetLoader):
 
     """Docstring for ProfilingDataset. """
 
-    def __init__(self, path, label=Pan.TRAIN_LABEL, percent=100):
+    def __init__(self, path):
         """ Load the profiling datset from this folder
 
         :path: path to the folder which contains the datafiles
-        :label: label to add to data instances
-                used with Pan.TRAIN_LABEL, Pan.TEST_LABEL
-        :percent: percentage of files from folder to use
 
         """
-        assert 0 <= percent <= 100
-        assert label in [Pan.TRAIN_LABEL, Pan.TEST_LABEL]
         DatasetLoader.__init__(self, path)
-        self.label = label
-        self.percent = percent
         self.config = Config(self.lang)
         self.truth_mapping = self.config.truth_mapping
         self.entries = self._read_entries()
-        self.preprocess()
         # TODO see where you are going to put this
         # self.discard_empty()
         # self.discard_duplicates()
@@ -57,7 +49,7 @@ class ProfilingDataset(DatasetLoader):
 
     def __getitem__(self, key):
         """ Access entries with [] with this class
-        :returns: TODO
+        :returns: get particular entry or slice of entries
 
         """
         return self.entries[key]
@@ -137,25 +129,15 @@ class ProfilingDataset(DatasetLoader):
                 lines.append(line)
         # Method is the same from here on, since we've gotten or created
         # the lines with the values needed
-        for index, line in enumerate(lines):
-            # populate dataset with labels ( test or train )
-            # train counts from start, test from end <- if they sum to 100
-            if self.label == Pan.TRAIN_LABEL:
-                if index <= (float(len(lines))/100) * self.percent:
-                    entries.append(self._new_instance(line, Pan.TRAIN_LABEL))
-            elif self.label == Pan.TEST_LABEL:
-                if index >= len(lines) - ((float(len(lines))/100) * self.percent):
-                    entries.append(self._new_instance(line, Pan.TEST_LABEL))
+        for line in lines:
+            entries.append(self._new_instance(line))
         return entries
 
-    def _new_instance(self, line, label):
+    def _new_instance(self, line):
         """ read line, extract attributes and create and add the
             Author Profile instance
 
         :line: str - line of data separated with Pan.SEPARATOR
-        :label: str - the label to add to the instance
-                set to Pan.TRAIN_LABEL or Pan.TEST_LABEL
-                but could be used differently
         :returns: an AuthorProfiling instance
 
         """
@@ -172,7 +154,7 @@ class ProfilingDataset(DatasetLoader):
             content = xml.read()
             docs = preprocess.get_docs(content)
             ap_attrs[Pan.TEXTS_LABEL] = docs
-            return AuthorProfile(label=label, **ap_attrs)
+            return AuthorProfile(**ap_attrs)
 
     def __repr__(self):
         """ Ipython friendly output
@@ -224,31 +206,6 @@ class ProfilingDataset(DatasetLoader):
                     with_duplicates -= to_remove.cleaned.copy()
             self.entries[index].cleaned = with_duplicates
 
-    def preprocess(self):
-        """ Preprocess each entry with preprocess steps defined in config
-        :returns: nothing - modifies entries in place
-
-        """
-        data_instances = self.config.preprocess_map
-        for data_label, preprocess_functions in data_instances.items():
-            print 'Creating preprocess group: %s' % data_label
-            print 'with functions:'
-            if preprocess_functions:
-                print '- %s' % '\n- '.join(preprocess_functions)
-                for entry in self.entries:
-                    texts = entry.texts[:]  # copy texts
-                    for func_name in preprocess_functions:
-                        func = getattr(preprocess, func_name)
-                        # TODO get rid of this - it needs to go in conf file
-                        # hardcoded stuff!
-                        if func_name == 'filter_lang':
-                            func(texts, self.lang)
-                        else:
-                            func(texts)  # functions modify lists in place
-                    setattr(entry, data_label, texts)
-            else:
-                print '- no functions defined'
-
     def set_labels(self, feature, values):
         """ set the labels of the instances to values
 
@@ -267,38 +224,20 @@ class ProfilingDataset(DatasetLoader):
         :returns: a list of str - labels
 
         """
-        if self.label == Pan.TRAIN_LABEL:
-            return zip(*self.get_train(feature=feature))[1]
-        else:
-            return zip(*self.get_test(feature=feature))[1]
+        return zip(*self.get_data(feature=feature))[1]
 
-    def get_train(self, label='texts', feature='none'):
+    def get_data(self, feature='none'):
         """ Get training data
 
-        :clean: whether to bring the clean data or the raw data
+        :label: which label to get training for
         :feature: what feature the labels are for
         :returns: list of train data
 
         """
-        train = []
+        data = []
         for entry in self.entries:
-            if entry.label == Pan.TRAIN_LABEL:
-                train.append(entry.datafy(label=label, feature=feature))
-        return train
-
-    def get_test(self, label='texts', feature='none'):
-        """ Get test data
-
-        :clean: whether to bring the clean data or the raw data
-        :feature: what feature the labels are for
-        :returns: list of test data
-
-        """
-        test = []
-        for entry in self.entries:
-            if entry.label == Pan.TEST_LABEL:
-                test.append(entry.datafy(label=label, feature=feature))
-        return test
+            data.append(entry.datafy(feature=feature))
+        return zip(*data)
 
     # visualization stuff
     def distribution(self, feature):
@@ -321,10 +260,7 @@ class ProfilingDataset(DatasetLoader):
         :returns: a dataframe with the counts for each instance
 
         """
-        if self.label == Pan.TRAIN_LABEL:
-            texts = self.get_train(label=label)
-        else:
-            texts = self.get_test(label=label)
+        texts = self.get_data(label=label)
         sizes = [len(text[0]) for text in texts]
         df = pd.DataFrame({'length': sizes})
         ax = df.plot(kind='bar', xticks=[], colormap='summer')
@@ -337,11 +273,10 @@ class AuthorProfile(object):
 
     """Docstring for AuthorProfile. """
 
-    def __init__(self, label=Pan.TRAIN_LABEL, **kwargs):
+    def __init__(self, **kwargs):
         """ an author profile - one user
 
         """
-        self.label = label
         for key, value in kwargs.items():
             try:
                 # set psych values
@@ -382,7 +317,7 @@ class AuthorProfile(object):
         body = body.replace('gender="F"', 'gender="female"')
         return header + body + footer
 
-    def get_text(self, label='texts', separator=''):
+    def get_text(self, separator=''):
         """ Get text with preprocess label
 
         :label: The label of the preprocessed set to get texts from
@@ -390,18 +325,18 @@ class AuthorProfile(object):
         :returns: a string containing all the texts joined with separators
 
         """
-        return separator.join(getattr(self, label))
+        return separator.join(self.texts)
 
     def get_label(self, feature):
-        """TODO: Docstring for get_label.
+        """ Get label for this instance
 
-        :feature: TODO
-        :returns: TODO
+        :feature: The feature this is used for - task
+        :returns: the label of this instance for this task
 
         """
         return getattr(self, feature)
 
-    def datafy(self, label='texts', feature='none'):
+    def datafy(self, feature='none'):
         """Return a tuple of data - training and label if feature is not none
 
         :feature: the feature we want the label for
@@ -409,7 +344,7 @@ class AuthorProfile(object):
 
         """
         if feature == 'none':
-            return (self.get_text(label, separator='\n'),)
+            return self.get_text(separator='\n')
         else:
-            return (self.get_text(label, separator='\n'),
+            return (self.get_text(separator='\n'),
                     getattr(self, feature))
