@@ -1,4 +1,4 @@
-# expose classes to predict for this language
+#expose classes to predict for this language
 # for each class expose the column in the truth.txt file
 # and whether it is a classification or regression problem
 
@@ -21,12 +21,12 @@ gender:
     recipe: gender.yml
     result_column: 4
     result_label: gender
-# age:
-#     column: 2
-#     type: classification
-#     recipe: age.yml
-#     result_column: 3
-#     result_label: age_group
+age:
+    column: 2
+    type: classification
+    recipe: age.yml
+    result_column: 3
+    result_label: age_group
 # extroverted:
 #     column: 3
 #     type: regression

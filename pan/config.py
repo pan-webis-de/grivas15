@@ -12,6 +12,7 @@ FILE_SUFFIX = '.yml'
 
 CLASSIFICATION = 'classification'
 REGRESSION = 'regression'
+ONLY_DATA = 'data_only'
 
 
 class Config(object):
@@ -39,7 +40,7 @@ class Config(object):
                                                 values['recipe'])
                             for label, values
                             in self._settings.items()
-                            if 'data_only' not in values.keys()}
+                            if ONLY_DATA not in values.keys()}
 
     def __getitem__(self, key):
         """ Accessor for predictors using key
@@ -105,7 +106,7 @@ class Config(object):
         """
         return [label for label, values
                 in self._settings.items()
-                if 'data_only' not in values.keys()]
+                if ONLY_DATA not in values.keys()]
 
     @property
     def labels(self):
@@ -115,3 +116,23 @@ class Config(object):
                                   self._settings[pred]['result_column'])
                                   for pred in self._settings.keys()],
                             key=lambda x: x[2])])
+
+    @property
+    def regression_list(self):
+        """ list of regression models
+        :returns: list - labels of regression models
+        """
+        return [label for label, values
+                in self._settings.items()
+                if ONLY_DATA not in values.keys() and
+                values['type'] == REGRESSION]
+
+    @property
+    def classifier_list(self):
+        """ Get list of classifiers
+        :returns: list - labels of classifier models
+        """
+        return [label for label, values
+                in self._settings.items()
+                if ONLY_DATA not in values.keys() and
+                values['type'] == CLASSIFICATION]

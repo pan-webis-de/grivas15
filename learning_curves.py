@@ -1,15 +1,17 @@
 #!/usr/bin/python
 
-import math
 import numpy as np
 import matplotlib.pyplot as plt
 from argparse import ArgumentParser
-from pan import ProfilingDataset, AuthorProfilingModel
+from pan import ProfilingDataset
 from sklearn import cross_validation
-from sklearn.naive_bayes import GaussianNB
 from sklearn.learning_curve import learning_curve
+from sklearn.metrics import precision_score, recall_score, accuracy_score, \
+                            f1_score, confusion_matrix, mean_squared_error
+from tictacs import from_recipe
 
-
+# below code taken and adapted from example
+# @ http://scikit-learn.org/stable/auto_examples/plot_learning_curve.html
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                         n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5)):
     """
@@ -70,58 +72,6 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     return plt
 
 
-log = []
-
-def cross_validate(dataset, feature, clf, num_folds=4):
-    """ train and cross validate a model
-
-    :lang: the language
-    :feature: the feature we want to classify for , ex: age
-
-    """
-
-    print '\nCreating model for {} - {}'.format(dataset.lang, feature)
-    print 'Using {} fold validation'.format(num_folds)
-    print 'Using classifier {}'.format(clf.__class__.__name__)
-    # get data
-    log.append('\nResults for {} - {} with classifier {}'
-               .format(dataset.lang, feature, clf.__class__.__name__))
-    model = AuthorProfilingModel(dataset=dataset, feature=feature, clf=clf)
-    # scores = model.cross(clf, folds=5)
-    # print 'Accuracy scores : {}'.format(scores)
-    # print 'Accuracy mean : {}'.format(scores.mean())
-    # print 'Accuracy std : {}'.format(scores.std())
-    if feature in dataset.config.classifier_list:
-        predict = model.cross(clf, folds=num_folds)
-        # scores = model.cross(clf, folds=num_folds)
-        Y = dataset.get_labels(model.feature)
-        # if it's classification we measure micro and macro scores
-        # f1_macro = f1_score(Y, predict, average='macro', pos_label=None)
-        # f1_micro = f1_score(Y, predict, average='micro', pos_label=None)
-        # prec_macro = precision_score(Y, predict, average='macro', pos_label=None)
-        # prec_micro = precision_score(Y, predict, average='micro', pos_label=None)
-        # rec_macro = recall_score(Y, predict, average='macro', pos_label=None)
-        # rec_micro = recall_score(Y, predict, average='micro', pos_label=None)
-        accuracy = accuracy_score(Y, predict)
-        # accuracy = scores.mean()
-        # accuracy_std = scores.std()
-        conf = confusion_matrix(Y, predict)
-        # log.append('\nF1 macro score : {}'.format(f1_macro))
-        # log.append('F1 micro score : {}\n'.format(f1_micro))
-        # log.append('Precision macro score : {}'.format(prec_macro))
-        # log.append('Precision micro score : {}\n'.format(prec_micro))
-        # log.append('Recall macro score : {}'.format(rec_macro))
-        # log.append('Recall micro score : {}\n'.format(rec_micro))
-        log.append('Accuracy mean : {}'.format(accuracy))
-        # log.append('Accuracy std : {}'.format(accuracy_std))
-        log.append('Confusion matrix:\n {}\n'.format(conf))
-    else:
-        predict = model.cross(clf, folds=num_folds, stratified=False)
-        Y = dataset.get_labels(model.feature)
-        # if it's not, we measure mean square root error (regression)
-        sqe = mean_squared_error(Y, predict)
-        log.append('root mean squared error : {}'.format(math.sqrt(sqe)))
-
 if __name__ == '__main__':
     parser = ArgumentParser(description='Train a model with crossvalidation'
                             ' on pan dataset - used for testing purposes ')
@@ -134,33 +84,24 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     infolder = args.infolder
-    feature = args.feature
+    task = args.feature
 
     print 'Loading dataset...'
-    data = ProfilingDataset(infolder, label='train')
+    data = ProfilingDataset(infolder)
     print 'Loaded {} users...\n'.format(len(data.entries))
     config = data.config
-    features = config.classifier_list + config.regression_list
-    if feature in features:
-        clf = config[feature].estimator_model
-        X = data.get_train(feature)
-        Y = data.get_labels(feature)
-        title = "Learning Curves (Naive Bayes)"
+    tasks = config.tasks
+    if task in tasks:
+        clf = from_recipe(config.recipes[task])
+        X, y = data.get_data(task)
+        title = "Learning Curves"
         # Cross validation with 100 iterations to get smoother mean test and train
         # score curves, each time with 20% data randomly selected as a validation set.
-        cv = cross_validation.ShuffleSplit(digits.data.shape[0], n_iter=100,
+        cv = cross_validation.ShuffleSplit(len(X), n_iter=10,
                                            test_size=0.2, random_state=0)
 
-        estimator = GaussianNB()
-        plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=4)
-
-        title = "Learning Curves (SVM, RBF kernel, $\gamma=0.001$)"
-        # SVC is more expensive so we do a lower number of CV iterations:
-        cv = cross_validation.ShuffleSplit(digits.data.shape[0], n_iter=10,
-                                           test_size=0.2, random_state=0)
-        plot_learning_curve(estimator, title, X, y, (0.7, 1.01), cv=cv, n_jobs=4)
-
+        plot_learning_curve(clf, title, X, y, ylim=(0.3, 1.01), cv=cv, n_jobs=1)
         plt.show()
     else:
-        print('feature "%s" does not exist - try one of the'
-              ' following: %s' % (feature, features))
+        print('task "%s" does not exist - try one of the'
+              ' following: %s' % (task, tasks))

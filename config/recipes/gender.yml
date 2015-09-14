@@ -4,15 +4,11 @@ pipeline:
   estimator_pkg: sklearn.pipeline
   estimator_params:
     steps:
-      - label: count 3grams tfidf
-        estimator: TfidfVectorizer
-        estimator_pkg: sklearn.feature_extraction.text
-        estimator_params:
-          analyzer: char
-          ngram_range: [3, 3]
-      - label: svm
-        estimator: LinearSVC
-        estimator_pkg: sklearn.svm
+      - clean html
+      - detwittify
+      - remove duplicates
+      - count 3grams tfidf
+      - svm
      # tfidf ngrams: 
      #     function: tfidf_ngrams
      #     preprocess: &basic
@@ -21,3 +17,35 @@ pipeline:
      #            - clean_html
      #            - detwittify
      #            - remove_duplicates
+svm:
+  label: svm
+  estimator: LinearSVC
+  estimator_pkg: sklearn.svm
+
+tfidf:
+  label: count 3grams tfidf
+  estimator: TfidfVectorizer
+  estimator_pkg: sklearn.feature_extraction.text
+  estimator_params:
+    analyzer: char
+    ngram_range: [3, 3]
+
+html cleaner:
+  label: clean html
+  estimator: clean_html
+  estimator_pkg: pan.preprocess
+
+detwittifier:
+  label: detwittify
+  estimator: detwittify
+  estimator_pkg: pan.preprocess
+
+duplicate remover:
+  label: remove duplicates
+  estimator: remove_duplicates
+  estimator_pkg: pan.preprocess
+
+printer:
+  label: printer
+  estimator: PrintWrapper
+  estimator_pkg: tictacs.wrappers

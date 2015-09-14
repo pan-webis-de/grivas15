@@ -1,4 +1,4 @@
-# expose classes to predict for this language
+#expose classes to predict for this language
 # for each class expose the column in the truth.txt file
 # and whether it is a classification or regression problem
 
@@ -18,62 +18,40 @@ lang:
 gender:
     column: 1
     type: classification
-    estimator: SVC
-    estimator_pkg: sklearn.svm
-    estimator_params:
-        kernel: rbf
-        gamma: 100
-        C: 100
-    feature_file: gender_other.yml
-    result_column: 4
+    recipe: gender.yml
+    result_column: 3
     result_label: gender
 extroverted:
-    column: 3
+    column: 2
     type: regression
-    estimator: SVR
-    estimator_pkg: sklearn.svm
-    estimator_params:
-        kernel: linear
-    feature_file: extroverted.yml
-    result_column: 5
+    recipe: extroverted.yml
+    result_column: 4
     result_label: extroverted
 stable:
-    column: 4
+    column: 3
     type: regression
-    estimator: SVR
-    estimator_pkg: sklearn.svm
-    estimator_params:
-        kernel: linear
-    feature_file: stable.yml
-    result_column: 6
+    # recipe: stable.yml
+    recipe: extroverted.yml
+    result_column: 5
     result_label: stable
 agreeable:
-    column: 5
+    column: 4
     type: regression
-    estimator: SVR
-    estimator_pkg: sklearn.svm
-    estimator_params:
-        kernel: linear
-    feature_file: agreeable.yml
-    result_column: 7
+    # recipe: agreeable.yml
+    recipe: extroverted.yml
+    result_column: 6
     result_label: agreeable
 concientious:
-    column: 6
+    column: 5
     type: regression
-    estimator: SVR
-    estimator_pkg: sklearn.svm
-    estimator_params:
-        kernel: linear
-    feature_file: concientious.yml
-    result_column: 8
+    # recipe: concientious.yml
+    recipe: extroverted.yml
+    result_column: 7
     result_label: concientious
 open:
-    column: 7
+    column: 6
     type: regression
-    estimator: SVR
-    estimator_pkg: sklearn.svm
-    estimator_params:
-        kernel: linear
-    feature_file: open.yml
-    result_column: 9
+    # recipe: open.yml
+    recipe: extroverted.yml
+    result_column: 8
     result_label: open

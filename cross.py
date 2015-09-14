@@ -2,47 +2,42 @@
 
 import math
 from argparse import ArgumentParser
-from pan import ProfilingDataset, AuthorProfilingModel
+from pan import ProfilingDataset
 # from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score, recall_score, accuracy_score, \
                             f1_score, confusion_matrix, mean_squared_error
+from sklearn import cross_validation
+from tictacs import from_recipe
 
 log = []
 
-def cross_validate(dataset, feature, clf, num_folds=4):
+def cross_val(dataset, task, model, num_folds=4):
     """ train and cross validate a model
 
     :lang: the language
-    :feature: the feature we want to classify for , ex: age
+    :task: the task we want to classify for , ex: age
 
     """
 
-    print '\nCreating model for {} - {}'.format(dataset.lang, feature)
+    X, y = dataset.get_data(task)
+    print '\nCreating model for {} - {}'.format(dataset.lang, task)
     print 'Using {} fold validation'.format(num_folds)
-    print 'Using classifier {}'.format(clf.__class__.__name__)
     # get data
     log.append('\nResults for {} - {} with classifier {}'
-               .format(dataset.lang, feature, clf.__class__.__name__))
-    model = AuthorProfilingModel(dataset=dataset, feature=feature, clf=clf)
-    # scores = model.cross(clf, folds=5)
-    # print 'Accuracy scores : {}'.format(scores)
-    # print 'Accuracy mean : {}'.format(scores.mean())
-    # print 'Accuracy std : {}'.format(scores.std())
-    if feature in dataset.config.classifier_list:
-        predict = model.cross(clf, folds=num_folds)
-        # scores = model.cross(clf, folds=num_folds)
-        Y = dataset.get_labels(model.feature)
+               .format(dataset.lang, task, model.__class__.__name__))
+    if task in dataset.config.classifier_list:
+        cv = cross_validation.StratifiedKFold(y, n_folds=num_folds,
+                                              random_state=13, shuffle=True)
+        predict = cross_validation.cross_val_predict(model, X, y, cv=cv)
         # if it's classification we measure micro and macro scores
-        # f1_macro = f1_score(Y, predict, average='macro', pos_label=None)
-        # f1_micro = f1_score(Y, predict, average='micro', pos_label=None)
-        # prec_macro = precision_score(Y, predict, average='macro', pos_label=None)
-        # prec_micro = precision_score(Y, predict, average='micro', pos_label=None)
-        # rec_macro = recall_score(Y, predict, average='macro', pos_label=None)
-        # rec_micro = recall_score(Y, predict, average='micro', pos_label=None)
-        accuracy = accuracy_score(Y, predict)
-        # accuracy = scores.mean()
-        # accuracy_std = scores.std()
-        conf = confusion_matrix(Y, predict)
+        # f1_macro = f1_score(y, predict, average='macro', pos_label=None)
+        # f1_micro = f1_score(y, predict, average='micro', pos_label=None)
+        # prec_macro = precision_score(y, predict, average='macro', pos_label=None)
+        # prec_micro = precision_score(y, predict, average='micro', pos_label=None)
+        # rec_macro = recall_score(y, predict, average='macro', pos_label=None)
+        # rec_micro = recall_score(y, predict, average='micro', pos_label=None)
+        accuracy = accuracy_score(y, predict)
+        conf = confusion_matrix(y, predict)
         # log.append('\nF1 macro score : {}'.format(f1_macro))
         # log.append('F1 micro score : {}\n'.format(f1_micro))
         # log.append('Precision macro score : {}'.format(prec_macro))
@@ -53,10 +48,11 @@ def cross_validate(dataset, feature, clf, num_folds=4):
         # log.append('Accuracy std : {}'.format(accuracy_std))
         log.append('Confusion matrix:\n {}\n'.format(conf))
     else:
-        predict = model.cross(clf, folds=num_folds, stratified=False)
-        Y = dataset.get_labels(model.feature)
+        cv = cross_validation.KFold(y, n_folds=num_folds,
+                                    random_state=13, shuffle=True)
+        predict = cross_validation.cross_val_predict(model, X, y, cv=cv)
         # if it's not, we measure mean square root error (regression)
-        sqe = mean_squared_error(Y, predict)
+        sqe = mean_squared_error(y, predict)
         log.append('root mean squared error : {}'.format(math.sqrt(sqe)))
 
 if __name__ == '__main__':
@@ -74,14 +70,14 @@ if __name__ == '__main__':
     num_folds = args.num_folds
 
     print 'Loading dataset...'
-    data = ProfilingDataset(infolder, label='train')
-    print 'Loaded {} users...\n'.format(len(data.entries))
-    config = data.config
-    features = config.classifier_list + config.regression_list
+    dataset = ProfilingDataset(infolder)
+    print 'Loaded {} users...\n'.format(len(dataset.entries))
+    config = dataset.config
+    tasks = config.tasks
     print '\n--------------- Thy time of Running ---------------'
-    for feature in features:
-        cross_validate(data, feature,
-                       config[feature].estimator_model, num_folds)
+    for task in tasks:
+        tictac = from_recipe(config.recipes[task])
+        cross_val(dataset, task, tictac, num_folds)
     # print results at end
     print '\n--------------- Thy time of Judgement ---------------'
     for message in log:
