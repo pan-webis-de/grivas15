@@ -18,17 +18,17 @@ def test_data(dataset, model, task):
 
     X, y = dataset.get_data(feature=task)
     predict = model.predict(X)
-    print('predict size is %s' % len(predict))
+    print('\n-- Predictions for %s --' % task)
     try:
         # if it's classification we measure micro and macro scores
         acc = accuracy_score(y, predict)
         conf = confusion_matrix(y, predict, labels=list(set(y)))
-        print 'Accuracy : {}'.format(acc)
-        print 'Confusion matrix :\n {}'.format(conf)
+        print('Accuracy : {}'.format(acc))
+        print('Confusion matrix :\n {}'.format(conf))
     except ValueError:
         # if it's not, we measure mean square root error (regression)
         sqe = mean_squared_error(y, predict)
-        print 'mean squared error : {}'.format(math.sqrt(sqe))
+        print('mean squared error : {}'.format(math.sqrt(sqe)))
     dataset.set_labels(task, predict)
 
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     outfolder = args.outfolder
 
     dataset = ProfilingDataset(infolder)
-    print 'Loaded {} users...\n'.format(len(dataset.entries))
+    print('Loaded {} users...\n'.format(len(dataset.entries)))
     config = dataset.config
     tasks = config.tasks
     all_models = joblib.load(model)
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         print('Did you change the config file after training???!')
         print('Exiting.. try training again.')
         exit(1)
-    print '\n--------------- Thy time of Judgement ---------------'
+    print('\n--------------- Thy time of Judgement ---------------')
     for task in tasks:
         test_data(dataset, all_models[task], task)
     # write output to file

@@ -13,7 +13,7 @@ from tictacs import from_recipe
 # below code taken and adapted from example
 # @ http://scikit-learn.org/stable/auto_examples/plot_learning_curve.html
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
-                        n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5)):
+                        n_jobs=1, train_sizes=np.linspace(.1, 1.0, 6)):
     """
     Generate a simple plot of the test and traning learning curve.
 
@@ -81,10 +81,15 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--feature', type=str,
                         dest='feature', default='gender',
                         help='feature to plot learning curves for')
+    parser.add_argument('-r', '--recipe', type=str,
+                        dest='recipe',
+                        help='path to the recipe to use, if not specified '
+                             'default recipe is used')
 
     args = parser.parse_args()
     infolder = args.infolder
     task = args.feature
+    recipe = args.recipe
 
     print 'Loading dataset...'
     data = ProfilingDataset(infolder)
@@ -92,15 +97,21 @@ if __name__ == '__main__':
     config = data.config
     tasks = config.tasks
     if task in tasks:
-        clf = from_recipe(config.recipes[task])
+        print ('Creating learning curves for %s task..' % task)
+        if not recipe:
+            recipe = config.recipes[task]
+            clf = from_recipe(recipe)
+        else:
+            clf = from_recipe(recipe)
+        print ('Loading recipe from file %s..' % recipe)
         X, y = data.get_data(task)
-        title = "Learning Curves"
         # Cross validation with 100 iterations to get smoother mean test and train
         # score curves, each time with 20% data randomly selected as a validation set.
-        cv = cross_validation.ShuffleSplit(len(X), n_iter=10,
-                                           test_size=0.2, random_state=0)
-
-        plot_learning_curve(clf, title, X, y, ylim=(0.3, 1.01), cv=cv, n_jobs=1)
+        cv = cross_validation.KFold(len(X), n_folds=5, random_state=0)
+        # cv = cross_validation.ShuffleSplit(len(X), n_iter=20, test_size=0.2,
+        #                                    random_state=0)
+        title = 'Learning Curves from recipe %s' % recipe
+        plot_learning_curve(clf, title, X, y, ylim=(0.3, 1.01), cv=cv, n_jobs=-1)
         plt.show()
     else:
         print('task "%s" does not exist - try one of the'

@@ -59,29 +59,33 @@ def clean_html(texts):
     """ Strip html
 
     :texts: collection - the collection of texts to change
-    :returns: nothing - modifies collection in place
+    :returns: list of texts cleaned from html
 
     """
-    for index, text in reversed(list(enumerate(texts))):
-        texts[index] = strip_tags(text)
-        # remove if empty string
-        if not texts[index].strip():
-            del texts[index]
+    output = []
+    for text in texts:
+        output.append(strip_tags(text))
+    return output
 
 
 def detwittify(texts):
-    """ remove characteristics which aren't author dependent like hashes and urls
+    """ remove characteristics which aren't "natural" text
+        hashtags, urls and usernames
 
     :texts: collection - the iterable of collection to change
+    :returns: list of texts cleaned from twitter specific text
+
     """
-    for index, each in enumerate(texts):
+    output = []
+    for text in texts:
         # remove urls from text
-        texts[index] = URLREGEX.sub('', each)
+        cleaned = URLREGEX.sub('', text)
         # replace hashtags with the text of the tag
-        texts[index] = HASHREGEX.sub('\g<2>', texts[index])
+        cleaned = HASHREGEX.sub('\g<2>', cleaned)
         # replace @ tags
-        texts[index] = REPLYREGEX.sub('', texts[index])
-        texts[index] = texts[index].strip()
+        cleaned = REPLYREGEX.sub('', cleaned)
+        output.append(cleaned.strip())
+    return output
 
 
 def filter_lang(texts, lang):
@@ -89,12 +93,16 @@ def filter_lang(texts, lang):
 
     :texts: A list of texts to process
     :lang: The language we want to retain texts for
+    :returns: list of texts classified as written in lang
+
     """
-    for index, text in reversed(list(enumerate(texts))):
+    lang_texts = []
+    for text in texts:
         if len(text) > 3:
             blob = TextBlob(text)
-            if not blob.detect_language() == lang:
-                del texts[index]
+            if blob.detect_language() == lang:
+                lang_texts.append(text)
+    return lang_texts
 
 
 def collapse_repetitions(texts):
@@ -104,22 +112,26 @@ def collapse_repetitions(texts):
         lengths of repetition will be captured in the same way
         (less features)
     """
-    for index, each in enumerate(texts):
-        # remove urls from text
-        texts[index] = re.sub(r'([\w%s])\1+' % string.punctuation,
-                              r'\1\1',
-                              texts[index])
+    collapsed = []
+    for text in texts:
+        collapsed_text = re.sub(r'([\w%s])\1+' % string.punctuation,
+                                r'\1\1',
+                                text)
+        collapsed.append(collapsed_text)
+    return collapsed
 
 
 def remove_duplicates(texts):
     """Remove all duplicates plus original if found
-    :returns: Nothing, modifies the list in place
+    :returns: list of texts without repetitions
 
     """
+    cleaned = []
     c = Counter(texts)
-    for index, text in reversed(list(enumerate(texts))):
-        if c[text] > 1:
-            del texts[index]
+    for text in texts:
+        if not c[text] > 1:
+            cleaned.append(text)
+    return cleaned
 
 
 def silhouette(texts):
@@ -127,23 +139,19 @@ def silhouette(texts):
        Replace lowercase letters with l
        Replace repetitions of characters with r
        Replace digits with d
-    :returns: Text converted to an outline form
+    :returns: list of texts converted to an outline form
 
     """
-    for index, each in enumerate(texts):
-        # remove urls from text
-        texts[index] = re.sub(ur'([\p{Lu}])(\1+)',
-                              lambda match: chr(31)*(len(match.group(2)) + 1),
-                              texts[index])
-        texts[index] = re.sub(ur'([\p{Ll}])(\1+)',
-                              lambda match: chr(30)*(len(match.group(2)) + 1),
-                              texts[index])
-        texts[index] = re.sub(ur'(\p{Lu}+?)',
-                              'U',
-                              texts[index])
-        texts[index] = re.sub(ur'(\p{Ll}+?)',
-                              'l',
-                              texts[index])
-        texts[index] = re.sub(ur'(\d+?)',
-                              lambda match: 'd',
-                              texts[index])
+    silhouetted = []
+    for text in texts:
+        sil_text = re.sub(ur'([\p{Lu}])(\1+)',
+                          lambda match: chr(31)*(len(match.group(2)) + 1),
+                          text)
+        sil_text = re.sub(ur'([\p{Ll}])(\1+)',
+                          lambda match: chr(30)*(len(match.group(2)) + 1),
+                          sil_text)
+        sil_text = re.sub(ur'(\p{Lu}+?)', 'U', sil_text)
+        sil_text = re.sub(ur'(\p{Ll}+?)', 'l', sil_text)
+        sil_text = re.sub(ur'(\d+?)', lambda match: 'd', sil_text)
+        silhouetted.append(sil_text)
+    return silhouetted

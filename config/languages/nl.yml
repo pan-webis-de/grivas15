@@ -22,34 +22,34 @@ gender:
     result_column: 3
     result_label: gender
 extroverted:
-    column: 2
+    column: 3
     type: regression
     recipe: extroverted.yml
     result_column: 4
     result_label: extroverted
 stable:
-    column: 3
+    column: 4
     type: regression
     # recipe: stable.yml
     recipe: extroverted.yml
     result_column: 5
     result_label: stable
 agreeable:
-    column: 4
+    column: 5
     type: regression
     # recipe: agreeable.yml
     recipe: extroverted.yml
     result_column: 6
     result_label: agreeable
 concientious:
-    column: 5
+    column: 6
     type: regression
     # recipe: concientious.yml
     recipe: extroverted.yml
     result_column: 7
     result_label: concientious
 open:
-    column: 6
+    column: 7
     type: regression
     # recipe: open.yml
     recipe: extroverted.yml

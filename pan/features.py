@@ -10,10 +10,46 @@
 """
 import regex as re
 import nltk
+import numpy
 from textblob.tokenizers import WordTokenizer
 from sklearn.base import BaseEstimator, TransformerMixin
 
 # ------------------------ feature generators --------------------------------#
+
+
+class TopicTopWords(BaseEstimator, TransformerMixin):
+
+    """ Suppose texts can be split into n topics. Represent each text
+        as a percentage for each topic."""
+
+    def __init__(self, n_topics, k_top):
+        import lda
+        from sklearn.feature_extraction.text import CountVectorizer
+        self.n_topics = n_topics
+        self.k_top = k_top
+        self.model = lda.LDA(n_topics=self.n_topics,
+                             n_iter=10,
+                             random_state=1)
+        self.counter = CountVectorizer()
+
+    def fit(self, X, y=None):
+        X = self.counter.fit_transform(X)
+        self.model.fit(X)
+        return self
+
+    def transform(self, texts):
+        """ transform data
+
+        :texts: The texts to count hashes in
+        :returns: list of counts for each text
+
+        """
+        X = self.counter.transform(texts).toarray()  # get counts for each word
+        topic_words = self.model.topic_word_  # model.components_ also works
+        topics = numpy.hstack([X[:, numpy.argsort(topic_dist)]
+                                [:, :-(self.k_top+1):-1]
+                              for topic_dist in topic_words])
+        return topics
 
 
 class CountHash(BaseEstimator, TransformerMixin):
@@ -22,7 +58,7 @@ class CountHash(BaseEstimator, TransformerMixin):
 
     pat = re.compile(r'(?<=\s+|^)#\w+', re.UNICODE)
 
-    def fit(self, x, y=None):
+    def fit(self, X, y=None):
         return self
 
     def transform(self, texts):
@@ -41,7 +77,7 @@ class CountReplies(BaseEstimator, TransformerMixin):
 
     pat = re.compile(r'(?<=\s+|^)@\w+', re.UNICODE)
 
-    def fit(self, x, y=None):
+    def fit(self, X, y=None):
         return self
 
     def transform(self, texts):
@@ -60,7 +96,7 @@ class CountURLs(BaseEstimator, TransformerMixin):
 
     pat = re.compile(r'((https?|ftp)://[^\s/$.?#].[^\s]*)')
 
-    def fit(self, x, y=None):
+    def fit(self, X, y=None):
         return self
 
     def transform(self, texts):
@@ -77,7 +113,7 @@ class CountCaps(BaseEstimator, TransformerMixin):
 
     """ Model that extracts a counter of capital letters from text. """
 
-    def fit(self, x, y=None):
+    def fit(self, X, y=None):
         return self
 
     def transform(self, texts):
@@ -94,7 +130,7 @@ class CountWordCaps(BaseEstimator, TransformerMixin):
 
     """ Model that extracts a counter of capital words from text. """
 
-    def fit(self, x, y=None):
+    def fit(self, X, y=None):
         return self
 
     def transform(self, texts):
@@ -119,7 +155,7 @@ class CountWordLength(BaseEstimator, TransformerMixin):
         """
         self.span = span
 
-    def fit(self, x, y=None):
+    def fit(self, X, y=None):
         return self
 
     def transform(self, texts):

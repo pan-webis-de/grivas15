@@ -27,37 +27,37 @@ age:
     recipe: age.yml
     result_column: 3
     result_label: age_group
-# extroverted:
-#     column: 3
-#     type: regression
-#     recipe: extroverted.yml
-#     result_column: 5
-#     result_label: extroverted
-# stable:
-#     column: 4
-#     type: regression
-#     # recipe: stable.yml
-#     recipe: extroverted.yml
-#     result_column: 6
-#     result_label: stable
-# agreeable:
-#     column: 5
-#     type: regression
-#     # recipe: agreeable.yml
-#     recipe: extroverted.yml
-#     result_column: 7
-#     result_label: agreeable
-# concientious:
-#     column: 6
-#     type: regression
-#     # recipe: concientious.yml
-#     recipe: extroverted.yml
-#     result_column: 8
-#     result_label: concientious
-# open:
-#     column: 7
-#     type: regression
-#     # recipe: open.yml
-#     recipe: extroverted.yml
-#     result_column: 9
-#     result_label: open
+extroverted:
+    column: 3
+    type: regression
+    recipe: extroverted.yml
+    result_column: 5
+    result_label: extroverted
+stable:
+    column: 4
+    type: regression
+    # recipe: stable.yml
+    recipe: extroverted.yml
+    result_column: 6
+    result_label: stable
+agreeable:
+    column: 5
+    type: regression
+    # recipe: agreeable.yml
+    recipe: extroverted.yml
+    result_column: 7
+    result_label: agreeable
+concientious:
+    column: 6
+    type: regression
+    # recipe: concientious.yml
+    recipe: extroverted.yml
+    result_column: 8
+    result_label: concientious
+open:
+    column: 7
+    type: regression
+    # recipe: open.yml
+    recipe: extroverted.yml
+    result_column: 9
+    result_label: open

@@ -6,18 +6,10 @@ pipeline:
     steps:
       - clean html
       - detwittify
-      - remove duplicates
       - count 3grams tfidf
       - svr
-     # tfidf ngrams: 
-     #     function: tfidf_ngrams
-     #     preprocess: &basic
-     #          label: basic
-     #          pipeline:
-     #            - clean_html
-     #            - detwittify
-     #            - remove_duplicates
-svm:
+
+svr:
   label: svr
   estimator: SVR
   estimator_pkg: sklearn.svm
@@ -38,11 +30,6 @@ html cleaner:
 detwittifier:
   label: detwittify
   estimator: detwittify
-  estimator_pkg: pan.preprocess
-
-duplicate remover:
-  label: remove duplicates
-  estimator: remove_duplicates
   estimator_pkg: pan.preprocess
 
 printer:

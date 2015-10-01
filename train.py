@@ -23,17 +23,18 @@ if __name__ == '__main__':
     outfolder = args.outfolder
 
     dataset = ProfilingDataset(infolder)
-    print 'Loaded {} users...\n'.format(len(dataset.entries))
+    print('Loaded {} users...\n'.format(len(dataset.entries)))
     # get config
     config = dataset.config
     tasks = config.tasks
-    print '\n--------------- Thy time of Running ---------------'
+    print('\n--------------- Thy time of Running ---------------')
     all_models = {}
     for task in tasks:
+        print('Learning to judge %s..' % task)
         # load data
         X, y = dataset.get_data(task)
         tictac = from_recipe(config.recipes[task])
         all_models[task] = tictac.fit(X, y)
     modelfile = os.path.join(outfolder, '%s.bin' % dataset.lang)
-    print 'Writing model to {}'.format(modelfile)
+    print('Writing model to {}'.format(modelfile))
     joblib.dump(all_models, modelfile, compress=3)

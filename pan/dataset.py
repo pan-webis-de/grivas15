@@ -2,6 +2,7 @@ import os.path
 import regex as re
 import pandas as pd
 import preprocess
+import numpy
 from pan import Pan
 from config import Config
 from collections import OrderedDict
@@ -221,10 +222,10 @@ class ProfilingDataset(DatasetLoader):
         """ Get labels of entries for this feature
 
         :feature: the feature to get the labels for
-        :returns: a list of str - labels
+        :returns: a list of labels
 
         """
-        return zip(*self.get_data(feature=feature))[1]
+        return self.get_data(feature=feature)[1]
 
     def get_data(self, feature='none'):
         """ Get training data
@@ -237,7 +238,11 @@ class ProfilingDataset(DatasetLoader):
         data = []
         for entry in self.entries:
             data.append(entry.datafy(feature=feature))
-        return zip(*data)
+        # zip produces tuples, we want to be able to modify
+        # the contents in preprocessing in place
+        # therefore we create we replace tuples with lists using map
+        # returns tuple - list of texts, list of labels
+        return map(list, zip(*data))
 
     # visualization stuff
     def distribution(self, feature):
@@ -283,8 +288,6 @@ class AuthorProfile(object):
                 setattr(self, key, float(value))
             except (ValueError, TypeError):
                 setattr(self, key, value)
-        # always remove html
-        preprocess.clean_html(self.texts)
 
     def __repr__(self):
         """ IPython friendly output
@@ -346,5 +349,5 @@ class AuthorProfile(object):
         if feature == 'none':
             return self.get_text(separator='\n')
         else:
-            return (self.get_text(separator='\n'),
-                    getattr(self, feature))
+            return [self.get_text(separator='\n'),
+                    getattr(self, feature)]
