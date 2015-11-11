@@ -36,7 +36,7 @@ pip install --user .
 
 - python test.py -i pan15-author-profiling-training-dataset-2015-04-23/pan15-author-profiling-training-dataset-english-2015-04-23/ -m models/en.bin -o results
 
-- python cross.py -i ../Baseline/pan15-author-profiling-training-dataset-2015-04-23/pan15-author-profiling-training-dataset-english-2015-04-23/
+- python cross.py -i pan15-author-profiling-training-dataset-2015-04-23/pan15-author-profiling-training-dataset-english-2015-04-23/
 
 #### Output example:
 
